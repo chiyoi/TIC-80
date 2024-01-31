@@ -1,3 +1,7 @@
+# Fork: Optimize experience on Mac.
+- Command + 1/2/3/4/5 to change tab.
+- Resolve build error "declaration-after-statement".
+
 [![Build Status](https://github.com/nesbox/TIC-80/workflows/Build/badge.svg)](https://github.com/nesbox/TIC-80/actions?query=workflow%3ABuild)
 
 ![TIC-80](https://tic80.com/img/logo64.png)

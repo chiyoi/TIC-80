@@ -1009,7 +1009,7 @@ void drawToolbar(Studio* studio, tic_mem* tic, bool bg)
     enum {Size = 7};
 
     static const u8 Icons[] = {tic_icon_code, tic_icon_sprite, tic_icon_map, tic_icon_sfx, tic_icon_music};
-    static const char* Tips[] = {"CODE EDITOR [f1]", "SPRITE EDITOR [f2]", "MAP EDITOR [f3]", "SFX EDITOR [f4]", "MUSIC EDITOR [f5]",};
+    static const char* Tips[] = {"CODE EDITOR [ctrl+1]", "SPRITE EDITOR [ctrl+2]", "MAP EDITOR [ctrl+3]", "SFX EDITOR [ctrl+4]", "MUSIC EDITOR [ctrl+5]",};
 
     s32 mode = -1;
 
@@ -1772,6 +1772,15 @@ static void processShortcuts(Studio* studio)
         else if(enterWasPressedOnce(studio)) runGame(studio);
         else if(keyWasPressedOnce(studio, tic_key_r)) runGame(studio);
         else if(keyWasPressedOnce(studio, tic_key_s)) saveProject(studio);
+
+                if(getConfig(studio)->options.devmode || studio->mode != TIC_RUN_MODE)
+        {
+            if(keyWasPressedOnce(studio, tic_key_1)) setStudioMode(studio, TIC_CODE_MODE);
+            else if(keyWasPressedOnce(studio, tic_key_2)) setStudioMode(studio, TIC_SPRITE_MODE);
+            else if(keyWasPressedOnce(studio, tic_key_3)) setStudioMode(studio, TIC_MAP_MODE);
+            else if(keyWasPressedOnce(studio, tic_key_4)) setStudioMode(studio, TIC_SFX_MODE);
+            else if(keyWasPressedOnce(studio, tic_key_5)) setStudioMode(studio, TIC_MUSIC_MODE);
+        }
 #endif
 
 #if defined(TIC80_PRO)
@@ -1830,14 +1839,6 @@ static void processShortcuts(Studio* studio)
         else if(studio->mode == TIC_RUN_MODE && keyWasPressedOnce(studio, tic_key_f7))
             setCoverImage(studio);
 
-        if(getConfig(studio)->options.devmode || studio->mode != TIC_RUN_MODE)
-        {
-            if(keyWasPressedOnce(studio, tic_key_f1)) setStudioMode(studio, TIC_CODE_MODE);
-            else if(keyWasPressedOnce(studio, tic_key_f2)) setStudioMode(studio, TIC_SPRITE_MODE);
-            else if(keyWasPressedOnce(studio, tic_key_f3)) setStudioMode(studio, TIC_MAP_MODE);
-            else if(keyWasPressedOnce(studio, tic_key_f4)) setStudioMode(studio, TIC_SFX_MODE);
-            else if(keyWasPressedOnce(studio, tic_key_f5)) setStudioMode(studio, TIC_MUSIC_MODE);
-        }
 #else
         else if(keyWasPressedOnce(studio, tic_key_escape))
         {
