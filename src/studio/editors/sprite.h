@@ -50,6 +50,7 @@ struct Sprite
     u8 brushSize;
     u16 x,y;
     bool advanced;
+    bool hexindex;
 
     tic_blit blit;
 
@@ -68,6 +69,12 @@ struct Sprite
         u8* back;
         u8* front;
     } select;
+
+    struct
+    {
+        bool edit;
+        s32 pos;
+    } flags;
 
     enum
     {

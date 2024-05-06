@@ -55,44 +55,32 @@ if(BUILD_WITH_LUA)
         ${LUA_DIR}/lutf8lib.c
         ${LUA_DIR}/loadlib.c
         ${LUA_DIR}/linit.c
+        ${LUA_DIR}/lbitlib.c
     )
 
-    add_library(lua STATIC ${LUA_SRC})
+    list(APPEND LUA_SRC ${CMAKE_SOURCE_DIR}/src/api/lua.c)
+    list(APPEND LUA_SRC ${CMAKE_SOURCE_DIR}/src/api/parse_note.c)
+
+    add_library(lua ${TIC_RUNTIME} ${LUA_SRC})
+
+    if(NOT BUILD_STATIC)
+        set_target_properties(lua PROPERTIES PREFIX "")
+    endif()
+
+    target_link_libraries(lua PRIVATE runtime)
 
     target_compile_definitions(lua PRIVATE LUA_COMPAT_5_2)
-    target_include_directories(lua INTERFACE ${THIRDPARTY_DIR}/lua)
+    target_include_directories(lua 
+        PUBLIC ${THIRDPARTY_DIR}/lua
+        PRIVATE 
+            ${CMAKE_SOURCE_DIR}/include
+            ${CMAKE_SOURCE_DIR}/src
+    )
 
     if(N3DS)
         target_compile_definitions(lua PUBLIC LUA_32BITS)
     endif()
 
-    target_compile_definitions(lua INTERFACE TIC_BUILD_WITH_LUA=1)
+    target_compile_definitions(lua INTERFACE TIC_BUILD_WITH_LUA)
 
-    if(BUILD_WITH_MOON)
-        target_compile_definitions(lua INTERFACE TIC_BUILD_WITH_MOON=1)
-    endif()
-
-    if(BUILD_WITH_FENNEL)
-        target_compile_definitions(lua INTERFACE TIC_BUILD_WITH_FENNEL=1)
-    endif()
-endif()
-
-################################
-# LPEG
-################################
-
-if(BUILD_WITH_MOON)
-
-    set(LPEG_DIR ${THIRDPARTY_DIR}/lpeg)
-    set(LPEG_SRC
-        ${LPEG_DIR}/lpcap.c
-        ${LPEG_DIR}/lpcode.c
-        ${LPEG_DIR}/lpprint.c
-        ${LPEG_DIR}/lptree.c
-        ${LPEG_DIR}/lpvm.c
-    )
-
-    add_library(lpeg STATIC ${LPEG_SRC})
-    target_include_directories(lpeg PRIVATE ${LUA_DIR})
-    target_link_libraries(lua PRIVATE lpeg)
 endif()

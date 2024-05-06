@@ -22,22 +22,14 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
+#include "tic.h"
 
-#ifdef memcpy
-#undef memcpy
-#endif
-#ifdef memset
-#undef memset
-#endif
+bool json_parse(const char *json, s32 size);
 
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef int8_t s8;
-typedef int16_t s16;
-typedef int32_t s32;
-typedef int64_t s64;
+s32 json_int(const char *var, s32 parent);
+bool json_bool(const char *var, s32 parent);
+bool json_string(const char *var, s32 parent, char* value, s32 size);
+s32 json_array(const char *var, s32 parent);
+s32 json_array_size(s32 array);
+s32 json_array_item(s32 array, s32 index);
+s32 json_object(const char *var, s32 parent);

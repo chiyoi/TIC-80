@@ -24,7 +24,7 @@
 
 #include "api.h"
 #include "tools.h"
-#include "blip_buf.h"
+#include "script.h"
 
 #define CLOCKRATE (255<<13)
 #define TIC_DEFAULT_COLOR 15
@@ -116,14 +116,18 @@ typedef struct
 
     struct
     {
-        tic_sound_register_data left[TIC_SOUND_CHANNELS];
-        tic_sound_register_data right[TIC_SOUND_CHANNELS];
+        struct sound_register_data
+        {
+            tic_sound_register_data data[TIC_SOUND_CHANNELS];
+            tic_sound_register_data pcm;
+        } left, right;
     } registers;
 
-    struct
+    struct sound_ring_buf
     {
         tic_sound_register registers[TIC_SOUND_CHANNELS];
         tic_stereo_volume stereo;
+        tic_pcm pcm;
     } sound_ringbuf[TIC_SOUND_RINGBUF_LEN];
 
     u32 sound_ringbuf_head;
@@ -170,12 +174,12 @@ typedef struct
     tic80_pixel_color_format screen_format;
 
     void* currentVM;
-    const tic_script_config* currentScript;
+    const tic_script* currentScript;
 
     struct
     {
-        blip_buffer_t* left;
-        blip_buffer_t* right;
+        struct blip_t* left;
+        struct blip_t* right;
     } blip;
     
     s32 samplerate;
@@ -184,7 +188,7 @@ typedef struct
 
     struct
     {
-        tic_core_state_data state;   
+        tic_core_state_data state;
         tic_ram ram;
         u8 input;
 
@@ -194,6 +198,17 @@ typedef struct
             u64 paused;
         } time;
     } pause;
+
+    struct
+    {
+    #define API_FUNC_DEF(name, _, __, ___, ____, _____, ret, ...) ret (*name)(__VA_ARGS__);
+        TIC_API_LIST(API_FUNC_DEF)
+    #undef  API_FUNC_DEF
+
+#if defined BUILD_DEPRECATED
+        void (*textri)(tic_mem* tic, float x1, float y1, float x2, float y2, float x3, float y3, float u1, float v1, float u2, float v2, float u3, float v3, bool use_map, u8* colors, s32 count);
+#endif
+    } api;
 
 } tic_core;
 
@@ -205,14 +220,13 @@ void tic_core_sound_tick_end(tic_mem* memory);
 // mouse cursor is the same in both modes
 // for backward compatibility
 #define OVR_COMPAT(CORE, BANK)                                              \
-    tic_api_vbank(&CORE->memory, BANK),                                     \
+    core->api.vbank(&CORE->memory, BANK),                                     \
     CORE->memory.ram->vram.vars.cursor = CORE->state.vbank.mem.vars.cursor
 
 #define OVR(CORE)                                   \
     s32 MACROVAR(_bank_) = CORE->state.vbank.id;    \
     OVR_COMPAT(CORE, 1);                            \
-    tic_api_cls(&CORE->memory, 0);                  \
+    core->api.cls(&CORE->memory, 0);                  \
     SCOPE(OVR_COMPAT(CORE, MACROVAR(_bank_)))
 
-void tic_core_textri_dep(tic_core* core, float x1, float y1, float x2, float y2, float x3, float y3, float u1, float v1, float u2, float v2, float u3, float v3, bool use_map, u8* colors, s32 count);
 #endif

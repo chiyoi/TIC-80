@@ -24,8 +24,23 @@ if(BUILD_WITH_WASM)
         ${WASM_DIR}/m3_module.c
     )
 
-    add_library(wasm STATIC ${WASM_SRC})
-    target_include_directories(wasm PUBLIC ${THIRDPARTY_DIR}/wasm3/source)
+    list(APPEND WASM_SRC ${CMAKE_SOURCE_DIR}/src/api/wasm.c)
+
+    add_library(wasm ${TIC_RUNTIME} ${WASM_SRC})
+
+    if(NOT BUILD_STATIC)
+        set_target_properties(wasm PROPERTIES PREFIX "")
+    endif()
+
+    target_link_libraries(wasm PRIVATE runtime)
+
+    target_include_directories(wasm 
+        PUBLIC ${WASM_DIR}
+        PRIVATE 
+            ${CMAKE_SOURCE_DIR}/include
+            ${CMAKE_SOURCE_DIR}/src
+    )
+
     target_compile_definitions(wasm INTERFACE TIC_BUILD_WITH_WASM=1)
 
 endif()

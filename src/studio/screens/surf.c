@@ -194,7 +194,7 @@ static bool addMenuItem(const char* name, const char* title, const char* hash, s
         || tic_tool_has_ext(name, CartExt)
         || tic_tool_has_ext(name, PngExt)
 #if defined(TIC80_PRO)
-        || tic_project_ext(name)
+        || project_ext(name)
 #endif
         )
     {
@@ -411,7 +411,7 @@ static void loadCover(Surf* surf)
                     else memset(cart, 0, sizeof(tic_cartridge));
                 }
 #if defined(TIC80_PRO)
-                else if(tic_project_ext(item->name))
+                else if(project_ext(item->name))
                     tic_project_load(item->name, data, size, cart);
 #endif
                 else
@@ -693,7 +693,8 @@ static void processGamepad(Surf* surf)
         if(tic_api_btnp(tic, B, -1, -1)
             || tic_api_keyp(tic, tic_key_backspace, -1, -1))
         {
-            goBackDir(surf);
+            if(tic_fs_isroot(surf->fs)) setStudioMode(surf->studio, TIC_CONSOLE_MODE);
+            else goBackDir(surf);
         }
 
 #ifdef CAN_OPEN_URL

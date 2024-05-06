@@ -37,9 +37,28 @@ if(BUILD_WITH_JANET)
         )
     endif()
 
-    add_library(janet ${THIRDPARTY_DIR}/janet/build/c/janet.c)
-    target_include_directories(janet PUBLIC ${THIRDPARTY_DIR}/janet/src/include)
-    target_include_directories(janet PUBLIC ${CMAKE_SOURCE_DIR}/build/janet/)
+    set(JANET_SRC 
+        ${THIRDPARTY_DIR}/janet/build/c/janet.c
+        ${CMAKE_SOURCE_DIR}/src/api/janet.c
+        ${CMAKE_SOURCE_DIR}/src/api/parse_note.c
+    )
+
+    add_library(janet ${TIC_RUNTIME} ${JANET_SRC})
+
+    if(NOT BUILD_STATIC)
+        set_target_properties(janet PROPERTIES PREFIX "")
+    endif()
+
+    target_link_libraries(janet PRIVATE runtime)
+
+    target_include_directories(janet 
+        PRIVATE 
+            ${THIRDPARTY_DIR}/janet/src/include
+            ${CMAKE_SOURCE_DIR}/build/janet
+            ${CMAKE_SOURCE_DIR}/include
+            ${CMAKE_SOURCE_DIR}/src
+    )
+
     target_compile_definitions(janet INTERFACE TIC_BUILD_WITH_JANET=1)
 
 endif()
