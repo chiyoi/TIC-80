@@ -124,8 +124,6 @@ endif()
 set(THIRDPARTY_DIR ${CMAKE_SOURCE_DIR}/vendor)
 set(DEMO_CARTS_IN ${CMAKE_SOURCE_DIR}/demos)
 
-set(CMAKE_C_FLAGS -Wno-declaration-after-statement)
-
 include(cmake/gif.cmake)
 include(cmake/blipbuf.cmake)
 include(cmake/zlib.cmake)

@@ -1252,8 +1252,8 @@ static void processKeyboard(Map* map)
 
     if(ctrl)
     {
-        if(keyWasPressed(map->studio, tic_key_z))        undo(map);
-        else if(keyWasPressed(map->studio, tic_key_y))   redo(map);
+        if(tic_api_key(tic, tic_key_shift) && keyWasPressed(map->studio, tic_key_z)) redo(map);
+        else if(keyWasPressed(map->studio, tic_key_z))                               undo(map);
     }
     else
     {

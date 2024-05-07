@@ -631,11 +631,11 @@ static void drawExtrabar(Studio* studio, tic_mem* tic)
 
     static struct Icon {u8 id; StudioEvent event; const char* tip;} Icons[] = 
     {
-        {tic_icon_cut,      TIC_TOOLBAR_CUT,    "CUT [ctrl+x]"},
-        {tic_icon_copy,     TIC_TOOLBAR_COPY,   "COPY [ctrl+c]"},
-        {tic_icon_paste,    TIC_TOOLBAR_PASTE,  "PASTE [ctrl+v]"},
-        {tic_icon_undo,     TIC_TOOLBAR_UNDO,   "UNDO [ctrl+z]"},
-        {tic_icon_redo,     TIC_TOOLBAR_REDO,   "REDO [ctrl+y]"},
+        {tic_icon_cut,      TIC_TOOLBAR_CUT,    "CUT [cmd+x]"},
+        {tic_icon_copy,     TIC_TOOLBAR_COPY,   "COPY [cmd+c]"},
+        {tic_icon_paste,    TIC_TOOLBAR_PASTE,  "PASTE [cmd+v]"},
+        {tic_icon_undo,     TIC_TOOLBAR_UNDO,   "UNDO [cmd+z]"},
+        {tic_icon_redo,     TIC_TOOLBAR_REDO,   "REDO [cmd+shift+z]"},
     };
 
     u8 color = tic_color_red;
@@ -717,7 +717,7 @@ static void drawBankIcon(Studio* studio, s32 x, s32 y)
 
         over = true;
 
-        showTooltip(studio, "SWITCH BANK");
+        showTooltip(studio, "SWITCH BA... [cmd+6]");
 
         if(checkMouseClick(studio, &rect, tic_mouse_left))
             studio->bank.show = !studio->bank.show;
@@ -1013,7 +1013,7 @@ void drawToolbar(Studio* studio, tic_mem* tic, bool bg)
     enum {Size = 7};
 
     static const u8 Icons[] = {tic_icon_code, tic_icon_sprite, tic_icon_map, tic_icon_sfx, tic_icon_music};
-    static const char* Tips[] = {"CODE EDITOR [ctrl+1]", "SPRITE EDITOR [ctrl+2]", "MAP EDITOR [ctrl+3]", "SFX EDITOR [ctrl+4]", "MUSIC EDITOR [ctrl+5]",};
+    static const char* Tips[] = {"CODE EDIT... [cmd+1]", "SPRITE ED... [cmd+2]", "MAP EDITOR [cmd+3]", "SFX EDITOR [cmd+4]", "MUSIC EDI... [cmd+5]"};
 
     s32 mode = -1;
 
@@ -1789,13 +1789,14 @@ static void processShortcuts(Studio* studio)
         else if(keyWasPressedOnce(studio, tic_key_r)) runGame(studio);
         else if(keyWasPressedOnce(studio, tic_key_s)) saveProject(studio);
 
-                if(getConfig(studio)->options.devmode || studio->mode != TIC_RUN_MODE)
+        if(getConfig(studio)->options.devmode || studio->mode != TIC_RUN_MODE)
         {
             if(keyWasPressedOnce(studio, tic_key_1)) setStudioMode(studio, TIC_CODE_MODE);
             else if(keyWasPressedOnce(studio, tic_key_2)) setStudioMode(studio, TIC_SPRITE_MODE);
             else if(keyWasPressedOnce(studio, tic_key_3)) setStudioMode(studio, TIC_MAP_MODE);
             else if(keyWasPressedOnce(studio, tic_key_4)) setStudioMode(studio, TIC_SFX_MODE);
             else if(keyWasPressedOnce(studio, tic_key_5)) setStudioMode(studio, TIC_MUSIC_MODE);
+            else if(keyWasPressedOnce(studio, tic_key_6)) studio->bank.show = !studio->bank.show;
         }
 #endif
 

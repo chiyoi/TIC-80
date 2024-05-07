@@ -647,8 +647,8 @@ static void processEnvelopesKeyboard(Sfx* sfx)
 
     if(ctrl)
     {
-        if(keyWasPressed(sfx->studio, tic_key_z))        undo(sfx);
-        else if(keyWasPressed(sfx->studio, tic_key_y))   redo(sfx);
+        if(tic_api_key(tic, tic_key_shift) && keyWasPressed(sfx->studio, tic_key_z)) redo(sfx);
+        else if(keyWasPressed(sfx->studio, tic_key_z))                               undo(sfx);
     }
 
     else if(keyWasPressed(sfx->studio, tic_key_left))    sfx->index--;

@@ -1547,10 +1547,10 @@ static void processKeyboard(Music* music)
 
     if (ctrl)
     {
-        if(keyWasPressed(music->studio, tic_key_a))            selectAll(music);
-        else if(keyWasPressed(music->studio, tic_key_z))       undo(music);
-        else if(keyWasPressed(music->studio, tic_key_y))       redo(music);
-        else if(keyWasPressed(music->studio, tic_key_f))       toggleFollowMode(music);
+        if(keyWasPressed(music->studio, tic_key_a))               selectAll(music);
+        else if(shift && keyWasPressed(music->studio, tic_key_z)) redo(music);
+        else if(keyWasPressed(music->studio, tic_key_z))          undo(music);
+        else if(keyWasPressed(music->studio, tic_key_f))          toggleFollowMode(music);
     }
     else
     {
@@ -1907,7 +1907,7 @@ static void drawPlayButtons(Music* music)
     static const Button FollowButton = 
     {
         tic_icon_follow,
-        "FOLLOW [ctrl+f]",
+        "FOLLOW [cmd+f]",
         NULL,
         toggleFollowMode,
     };

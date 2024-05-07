@@ -177,7 +177,7 @@ static void drawBookmarks(Code* code)
     {
         setCursor(code->studio, tic_cursor_hand);
 
-        showTooltip(code->studio, "BOOKMARK [ctrl+f1]");
+        showTooltip(code->studio, "BOOKMARK");
 
         s32 line = (tic_api_mouse(tic).y - rect.y) / STUDIO_TEXT_HEIGHT;
 
@@ -2520,6 +2520,9 @@ static void processViKeyboard(Code* code)
         else if (keyWasPressed(code->studio, tic_key_left)) leftColumn(code);
         else if (keyWasPressed(code->studio, tic_key_right)) rightColumn(code);
 
+        else if (ctrl && shift && keyWasPressed(code->studio, tic_key_z)) redo(code);
+        else if (ctrl && keyWasPressed(code->studio, tic_key_z)) undo(code);
+
         else if (keyWasPressed(code->studio, tic_key_backspace)) 
             backspaceChar(code);
 
@@ -2650,8 +2653,10 @@ static void processViKeyboard(Code* code)
         else if (clear && keyWasPressed(code->studio, tic_key_r))
             setCodeMode(code, TEXT_REPLACE_MODE);
 
-        else if (clear && keyWasPressed(code->studio, tic_key_u)) undo(code);
-        else if (shift && keyWasPressed(code->studio, tic_key_u)) redo(code);
+        else if (clear && keyWasPressed(code->studio, tic_key_u))         undo(code);
+        else if (shift && keyWasPressed(code->studio, tic_key_u))         redo(code);
+        else if (ctrl && shift && keyWasPressed(code->studio, tic_key_z)) redo(code);
+        else if (ctrl && keyWasPressed(code->studio, tic_key_z))          undo(code);
 
         else if (clear && keyWasPressed(code->studio, tic_key_p)) 
         {
@@ -2692,8 +2697,10 @@ static void processViKeyboard(Code* code)
         else if (clear && keyWasPressed(code->studio, tic_key_9)) processViGoto(code, 9);
 
         else if (shift && keyWasPressed(code->studio, tic_key_slash)) setCodeMode(code, TEXT_OUTLINE_MODE);
+        else if (ctrl && keyWasPressed(code->studio, tic_key_0))      setCodeMode(code, TEXT_OUTLINE_MODE);
 
         else if (shift && keyWasPressed(code->studio, tic_key_m)) setCodeMode(code, TEXT_BOOKMARK_MODE);
+        else if (ctrl && keyWasPressed(code->studio, tic_key_9))  setCodeMode(code, TEXT_BOOKMARK_MODE);
         else if (clear && keyWasPressed(code->studio, tic_key_m)) toggleBookmark(code, getLineByPos(code, code->cursor.position));
         else if (clear && keyWasPressed(code->studio, tic_key_comma)) 
         {
@@ -2946,29 +2953,30 @@ static void processKeyboard(Code* code)
         if(ctrl)
         {
             ctrlHandled = true;
-            if(keyWasPressed(code->studio, tic_key_tab))        doTab(code, shift, ctrl);
-            else if(keyWasPressed(code->studio, tic_key_a))     emacsMode ? startLine(code) : selectAll(code);
-            else if(keyWasPressed(code->studio, tic_key_z))     undo(code);
-            else if(keyWasPressed(code->studio, tic_key_y))     emacsMode ? copyFromClipboard(code, true) : redo(code);
-            else if(keyWasPressed(code->studio, tic_key_w))     emacsMode ? cutToClipboard(code, true) : noop;
-            else if(keyWasPressed(code->studio, tic_key_f))     emacsMode ? rightColumn(code) : setCodeMode(code, TEXT_FIND_MODE);
-            else if(keyWasPressed(code->studio, tic_key_g))     emacsMode ? killSelection(code) : setCodeMode(code, TEXT_GOTO_MODE);
-            else if(keyWasPressed(code->studio, tic_key_b))     emacsMode ? leftColumn(code) : setCodeMode(code, TEXT_BOOKMARK_MODE);
-            else if(keyWasPressed(code->studio, tic_key_o))     setCodeMode(code, TEXT_OUTLINE_MODE);
-            else if(keyWasPressed(code->studio, tic_key_n))     downLine(code);
-            else if(keyWasPressed(code->studio, tic_key_p))     upLine(code);
-            else if(keyWasPressed(code->studio, tic_key_e))     endLine(code);
-            else if(keyWasPressed(code->studio, tic_key_d))     emacsMode ? deleteChar(code) : dupLine(code);
-            else if(keyWasPressed(code->studio, tic_key_j))     newLine(code);
-            else if(keyWasPressed(code->studio, tic_key_slash)) emacsMode ? undo(code) : commentLine(code);
-            else if(keyWasPressed(code->studio, tic_key_home))  goCodeHome(code);
-            else if(keyWasPressed(code->studio, tic_key_end))   goCodeEnd(code);
-            else if(keyWasPressed(code->studio, tic_key_up))    extirpSExp(code);
-            else if(keyWasPressed(code->studio, tic_key_down))  sexpify(code);
-            else if(keyWasPressed(code->studio, tic_key_k))     deleteLine(code);
-            else if(keyWasPressed(code->studio, tic_key_space)) emacsMode ? toggleMark(code) : noop;
-            else if(keyWasPressed(code->studio, tic_key_l))     recenterScroll(code, emacsMode);
-            else if(keyWasPressed(code->studio, tic_key_v))     emacsMode ? pageDown(code) : noop;
+            if(keyWasPressed(code->studio, tic_key_tab))                 doTab(code, shift, ctrl);
+            else if(keyWasPressed(code->studio, tic_key_a))              emacsMode ? startLine(code) : selectAll(code);
+            else if(shift && keyWasPressed(code->studio, tic_key_z))     redo(code);
+            else if(keyWasPressed(code->studio, tic_key_z))              undo(code);
+            else if(keyWasPressed(code->studio, tic_key_y))              emacsMode ? copyFromClipboard(code, true) : noop;
+            else if(keyWasPressed(code->studio, tic_key_w))              emacsMode ? cutToClipboard(code, true) : noop;
+            else if(keyWasPressed(code->studio, tic_key_f))              emacsMode ? rightColumn(code) : setCodeMode(code, TEXT_FIND_MODE);
+            else if(keyWasPressed(code->studio, tic_key_g))              emacsMode ? killSelection(code) : setCodeMode(code, TEXT_GOTO_MODE);
+            else if(keyWasPressed(code->studio, tic_key_b))              emacsMode ? leftColumn(code) : setCodeMode(code, TEXT_BOOKMARK_MODE);
+            else if(keyWasPressed(code->studio, tic_key_o))              setCodeMode(code, TEXT_OUTLINE_MODE);
+            else if(keyWasPressed(code->studio, tic_key_n))              downLine(code);
+            else if(keyWasPressed(code->studio, tic_key_p))              upLine(code);
+            else if(keyWasPressed(code->studio, tic_key_e))              endLine(code);
+            else if(keyWasPressed(code->studio, tic_key_d))              emacsMode ? deleteChar(code) : dupLine(code);
+            else if(keyWasPressed(code->studio, tic_key_j))              newLine(code);
+            else if(keyWasPressed(code->studio, tic_key_slash))          emacsMode ? undo(code) : commentLine(code);
+            else if(keyWasPressed(code->studio, tic_key_home))           goCodeHome(code);
+            else if(keyWasPressed(code->studio, tic_key_end))            goCodeEnd(code);
+            else if(keyWasPressed(code->studio, tic_key_up))             extirpSExp(code);
+            else if(keyWasPressed(code->studio, tic_key_down))           sexpify(code);
+            else if(keyWasPressed(code->studio, tic_key_k))              deleteLine(code);
+            else if(keyWasPressed(code->studio, tic_key_space))          emacsMode ? toggleMark(code) : noop;
+            else if(keyWasPressed(code->studio, tic_key_l))              recenterScroll(code, emacsMode);
+            else if(keyWasPressed(code->studio, tic_key_v))              emacsMode ? pageDown(code) : noop;
             else if(shift && keyWasPressed(code->studio, tic_key_minus)) emacsMode ? undo(code) : noop;
             else ctrlHandled = false;
         }
@@ -3600,7 +3608,7 @@ static void drawRunButton(Code* code, s32 x, s32 y)
     if(checkMousePos(code->studio, &rect))
     {
         setCursor(code->studio, tic_cursor_hand);
-        showTooltip(code->studio, "RUN [ctrl+r]");
+        showTooltip(code->studio, "RUN [cmd+r]");
         over = true;
 
         if(checkMouseClick(code->studio, &rect, tic_mouse_left))
@@ -3616,11 +3624,11 @@ static void drawCodeToolbar(Code* code)
 
     static const struct Button {u8 icon; const char* tip;} Buttons[] = 
     {
-        {tic_icon_hand, "DRAG [right mouse]"},
-        {tic_icon_find, "FIND [ctrl+f]"},
-        {tic_icon_goto, "GOTO [ctrl+g]"},
-        {tic_icon_bookmark, "BOOKMARKS [ctrl+b]"},
-        {tic_icon_outline, "OUTLINE [ctrl+o]"},
+        {tic_icon_hand, "DRAG"},
+        {tic_icon_find, "FIND"},
+        {tic_icon_goto, "GOTO"},
+        {tic_icon_bookmark, "BOOKMARKS [cmd+9]"},
+        {tic_icon_outline, "OUTLINE [cmd+0]"},
     };
 
     enum {Count = COUNT_OF(Buttons), Size = 7};

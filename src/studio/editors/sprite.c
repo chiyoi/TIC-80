@@ -1906,8 +1906,8 @@ static void processKeyboard(Sprite* sprite)
 
         if(ctrl)
         {   
-            if(keyWasPressed(sprite->studio, tic_key_z))        undo(sprite);
-            else if(keyWasPressed(sprite->studio, tic_key_y))   redo(sprite);
+            if(tic_api_key(tic, tic_key_shift) && keyWasPressed(sprite->studio, tic_key_z)) redo(sprite);
+            else if(keyWasPressed(sprite->studio, tic_key_z))                               undo(sprite);
 
             else if(keyWasPressed(sprite->studio, tic_key_left))    leftViewport(sprite);
             else if(keyWasPressed(sprite->studio, tic_key_right))   rightViewport(sprite);
