@@ -1,6 +1,8 @@
-# Fork: Optimize experience on Mac.
+# Fork: Improve experience on Mac.
 - Command + 1/2/3/4/5 to change tab.
-- Resolve build error "declaration-after-statement".
+- VI Mode:
+  - Move caret with arrow keys in insert mode.
+  - Handle missing keys I and A for normal mode.
 
 ---
 

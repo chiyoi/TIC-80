@@ -2515,6 +2515,11 @@ static void processViKeyboard(Code* code)
             history(code); //needs to come after the mode switch or won't be honored
         }
 
+        else if (keyWasPressed(code->studio, tic_key_up)) upLine(code);
+        else if (keyWasPressed(code->studio, tic_key_down)) downLine(code);
+        else if (keyWasPressed(code->studio, tic_key_left)) leftColumn(code);
+        else if (keyWasPressed(code->studio, tic_key_right)) rightColumn(code);
+
         else if (keyWasPressed(code->studio, tic_key_backspace)) 
             backspaceChar(code);
 
@@ -2544,11 +2549,21 @@ static void processViKeyboard(Code* code)
 
         else if (clear && keyWasPressed(code->studio, tic_key_i)) 
             setStudioViMode(code->studio, VI_INSERT);
+        else if (shift && keyWasPressed(code->studio, tic_key_i)) 
+        {
+            setStudioViMode(code->studio, VI_INSERT);
+            goHome(code);
+        }
 
         else if (clear && keyWasPressed(code->studio, tic_key_a)) 
         {
             setStudioViMode(code->studio, VI_INSERT);
             rightColumn(code);
+        }
+        else if (shift && keyWasPressed(code->studio, tic_key_a)) 
+        {
+            setStudioViMode(code->studio, VI_INSERT);
+            goEnd(code);
         }
         else if (clear && keyWasPressed(code->studio, tic_key_o)) 
         {
