@@ -2521,7 +2521,7 @@ static void processViKeyboard(Code* code)
         else if (keyWasPressed(code->studio, tic_key_right)) rightColumn(code);
 
         else if (ctrl && shift && keyWasPressed(code->studio, tic_key_z)) redo(code);
-        else if (ctrl && keyWasPressed(code->studio, tic_key_z)) undo(code);
+        else if (ctrl && keyWasPressed(code->studio, tic_key_z))          undo(code);
 
         else if (keyWasPressed(code->studio, tic_key_backspace)) 
             backspaceChar(code);
@@ -2730,6 +2730,13 @@ static void processViKeyboard(Code* code)
 
         else if (clear && keyWasPressed(code->studio, tic_key_d))
             cutToClipboard(code, false); //it seems like if there is not selection it will act on the current line by default, how nice
+        else if (shift && keyWasPressed(code->studio, tic_key_d))
+        {
+            newLine(code);
+            cutToClipboard(code, false);
+            upLine(code);
+            goEnd(code);
+        }
         else if (clear && keyWasPressed(code->studio, tic_key_y))
             copyToClipboard(code, false);
 

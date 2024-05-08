@@ -2,7 +2,7 @@
 - Command + 1/2/3/4/5 to change tab.
 - VI Mode:
   - Move caret with arrow keys in insert mode.
-  - Handle missing keys I and A for normal mode.
+  - Handle missing keys I, A, D in normal mode.
 
 ---
 
