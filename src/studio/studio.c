@@ -2503,7 +2503,7 @@ Studio* studio_create(s32 argc, char **argv, s32 samplerate, tic80_pixel_color_f
 
         .bank = 
         {
-            .chained = true,
+            .chained = false,
         },
 
         .anim = 
