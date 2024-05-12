@@ -657,6 +657,15 @@ static void processScrolling(Map* map, bool pressed)
     tic_mem* tic = map->tic;
     tic_rect rect = {MAP_X, MAP_Y, MAP_WIDTH, MAP_HEIGHT};
 
+
+    if (!pressed)
+    {
+        tic80_input* input = &map->tic->ram->input;
+        map->scroll.x -= input->mouse.scrollx * 3;
+        map->scroll.y -= input->mouse.scrolly * 3;
+        normalizeMap(&map->scroll.x, &map->scroll.y);
+    }
+
     if(map->scroll.active)
     {
         if(pressed)
@@ -1291,11 +1300,11 @@ static void tick(Map* map)
     processAnim(map->anim.movie, map);
 
     // process scroll
-    if(tic->ram->input.mouse.scrolly < 0) 
-    {
-        setStudioMode(map->studio, TIC_WORLD_MODE);
-        return;
-    }
+    // if(tic->ram->input.mouse.scrolly < 0) 
+    // {
+    //     setStudioMode(map->studio, TIC_WORLD_MODE);
+    //     return;
+    // }
 
     processKeyboard(map);
 

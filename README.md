@@ -1,6 +1,7 @@
 # Fork: Improve experience on Mac.
 - Command + 1/2/3/4/5 to change tab.
-- VI Mode:
+- Scroll trackpad to navigate in map.
+- VI:
   - Move caret with arrow keys in insert mode.
   - Handle missing keys I, A, D in normal mode.
 
