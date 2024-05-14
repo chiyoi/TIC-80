@@ -4,6 +4,7 @@
 - VI:
   - Move caret with arrow keys in insert mode.
   - Handle missing keys I, A, D in normal mode.
+- Remake bookmark mechanism: Lines start with `--* ` are regarded as bookmarks, so that it is persisted in the cart and the extra column to display bookmarks is saved.
 
 ---
 

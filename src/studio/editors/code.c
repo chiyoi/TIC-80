@@ -28,7 +28,7 @@
 
 #define TEXT_CURSOR_DELAY (TIC80_FRAMERATE / 2)
 #define TEXT_CURSOR_BLINK_PERIOD TIC80_FRAMERATE
-#define BOOKMARK_WIDTH 7
+#define BOOKMARK_WIDTH 0
 #define CODE_EDITOR_WIDTH (TIC80_WIDTH - BOOKMARK_WIDTH)
 #define CODE_EDITOR_HEIGHT (TIC80_HEIGHT - TOOLBAR_SIZE - STUDIO_TEXT_HEIGHT)
 #define TEXT_BUFFER_HEIGHT (CODE_EDITOR_HEIGHT / STUDIO_TEXT_HEIGHT)
@@ -140,67 +140,6 @@ static char* getNextLineByPos(Code* code, char* pos)
 static inline CodeState* getState(Code* code, const char* pos)
 {
     return code->state + (pos - code->src);
-}
-
-static void toggleBookmark(Code* code, char* codePos)
-{
-    CodeState* start = getState(code, codePos);
-    const CodeState* end = getState(code, getNextLineByPos(code, codePos));
-
-    bool bookmarked = false;
-    CodeState* ptr = start;
-    while(ptr < end)
-        if(ptr++->bookmark)
-            bookmarked = true;
-
-    if(bookmarked)
-    {
-        CodeState* ptr = start;
-        while(ptr < end)
-            ptr++->bookmark = 0;
-    }
-    else start->bookmark = 1;
-
-    history(code);
-}
-
-static void drawBookmarks(Code* code)
-{
-    tic_mem* tic = code->tic;
-
-    enum {Width = BOOKMARK_WIDTH, Height = TIC80_HEIGHT - TOOLBAR_SIZE*2};
-    tic_rect rect = {0, TOOLBAR_SIZE, Width, Height};
-
-    tic_api_rect(code->tic, rect.x, rect.y, rect.w, rect.h, tic_color_grey);
-
-    if(checkMousePos(code->studio, &rect))
-    {
-        setCursor(code->studio, tic_cursor_hand);
-
-        showTooltip(code->studio, "BOOKMARK");
-
-        s32 line = (tic_api_mouse(tic).y - rect.y) / STUDIO_TEXT_HEIGHT;
-
-        drawBitIcon(code->studio, tic_icon_bookmark, rect.x, rect.y + line * STUDIO_TEXT_HEIGHT - 1, tic_color_dark_grey);
-
-        if(checkMouseClick(code->studio, &rect, tic_mouse_left))
-            toggleBookmark(code, getPosByLine(code->src, line + code->scroll.y));
-    }
-
-    const char* pointer = code->src;
-    const CodeState* syntaxPointer = code->state;
-    s32 y = -code->scroll.y;
-
-    while(*pointer)
-    {
-        if(syntaxPointer++->bookmark)
-        {
-            drawBitIcon(code->studio, tic_icon_bookmark, rect.x, rect.y + y * STUDIO_TEXT_HEIGHT, tic_color_black);
-            drawBitIcon(code->studio, tic_icon_bookmark, rect.x, rect.y + y * STUDIO_TEXT_HEIGHT - 1, tic_color_yellow);
-        }
-
-        if(*pointer++ == '\n')y++;
-    }
 }
 
 static inline s32 getFontWidth(Code* code)
@@ -335,8 +274,6 @@ static void drawCode(Code* code, bool withCursor)
         pointer++;
         syntaxPointer++;
     }
-
-    drawBookmarks(code);
 
     if(code->cursor.position == pointer)
         cursor.x = x, cursor.y = y;
@@ -1736,7 +1673,37 @@ static void drawFilterMatch(Code *code, s32 x, s32 y, const char* orig, s32 size
     }
 }
 
-static void initSidebarMode(Code* code)
+
+static void buildBookmarks(Code* code)
+{
+    tic_mem* tic = code->tic;
+
+    code->sidebar.size = 0;
+
+    const tic_script* config = tic_get_script(tic);
+
+    if(config->getBookmarks)
+    {
+        s32 size = 0;
+        const tic_outline_item* items = config->getBookmarks(code->src, &size);
+
+        if(items)
+        {
+            for(const tic_outline_item *it = items, *end = items + size; it != end; ++it)
+            {
+                const char* filter = code->popup.text;
+                if(*filter && !isFilterMatch(it->pos, it->size, filter))
+                    continue;
+
+                s32 last = code->sidebar.size++;
+                code->sidebar.items = realloc(code->sidebar.items, code->sidebar.size * sizeof(tic_outline_item));
+                code->sidebar.items[last] = *it;
+            }
+        }
+    }
+}
+
+static void buildOutline(Code* code)
 {
     tic_mem* tic = code->tic;
 
@@ -1751,7 +1718,7 @@ static void initSidebarMode(Code* code)
 
         if(items)
         {
-            for(const tic_outline_item *it = items, *end = items + size; it != end ; ++it)
+            for(const tic_outline_item *it = items, *end = items + size; it != end; ++it)
             {
                 if(code->state[it->pos - code->src].syntax == SyntaxType_COMMENT)
                     continue;
@@ -1772,27 +1739,10 @@ static void setBookmarkMode(Code* code)
 {
     code->sidebar.index = 0;
     code->sidebar.scroll = 0;
-    code->sidebar.size = 0;
 
-    const char* ptr = code->src;
-    const CodeState* state = code->state;
+    buildBookmarks(code);
 
-    while(*ptr)
-    {
-        if(state->bookmark)
-        {
-            s32 last = code->sidebar.size++;
-            code->sidebar.items = realloc(code->sidebar.items, code->sidebar.size * sizeof(tic_outline_item));
-            tic_outline_item* item = &code->sidebar.items[last];
-
-            item->pos = ptr;
-            item->size = getLineSize(ptr);
-        }
-        
-        ptr++;
-        state++;
-    }
-
+    qsort(code->sidebar.items, code->sidebar.size, sizeof(tic_outline_item), funcCompare);
     updateSidebarCode(code);
 }
 
@@ -1801,7 +1751,7 @@ static void setOutlineMode(Code* code)
     code->sidebar.index = 0;
     code->sidebar.scroll = 0;
 
-    initSidebarMode(code);
+    buildOutline(code);
 
     qsort(code->sidebar.items, code->sidebar.size, sizeof(tic_outline_item), funcCompare);
     updateSidebarCode(code);
@@ -2066,44 +2016,6 @@ static void dupLine(Code* code)
         parseSyntaxColor(code);
         updateEditor(code);
     }
-}
-
-static bool goPrevBookmark(Code* code, char* ptr)
-{
-    const CodeState* state = getState(code, ptr);
-    while(ptr >= code->src)
-    {
-        if(state->bookmark)
-        {
-            updateCursorPosition(code, ptr);
-            centerScroll(code);
-            return true;
-        }
-
-        ptr--;
-        state--;
-    }
-
-    return false;
-}
-
-static bool goNextBookmark(Code* code, char* ptr)
-{
-    const CodeState* state = getState(code, ptr);
-    while(*ptr)
-    {
-        if(state->bookmark)
-        {
-            updateCursorPosition(code, ptr);
-            centerScroll(code);
-            return true;
-        }
-
-        ptr++;
-        state++;
-    }
-
-    return false;
 }
 
 static bool clipboardHasNewline() 
@@ -2392,7 +2304,7 @@ end:
 }
 
 
-//pass in pointer to beginnign of word and its length
+//pass in pointer to beginning of word and its length
 //so you can just use the word in src
 static char* findFunctionDefinition(Code* code, char* name, size_t length) {
     char* result = NULL;
@@ -2699,19 +2611,7 @@ static void processViKeyboard(Code* code)
         else if (shift && keyWasPressed(code->studio, tic_key_slash)) setCodeMode(code, TEXT_OUTLINE_MODE);
         else if (ctrl && keyWasPressed(code->studio, tic_key_0))      setCodeMode(code, TEXT_OUTLINE_MODE);
 
-        else if (shift && keyWasPressed(code->studio, tic_key_m)) setCodeMode(code, TEXT_BOOKMARK_MODE);
         else if (ctrl && keyWasPressed(code->studio, tic_key_9))  setCodeMode(code, TEXT_BOOKMARK_MODE);
-        else if (clear && keyWasPressed(code->studio, tic_key_m)) toggleBookmark(code, getLineByPos(code, code->cursor.position));
-        else if (clear && keyWasPressed(code->studio, tic_key_comma)) 
-        {
-            if(!goPrevBookmark(code, getPrevLineByPos(code, code->cursor.position)))
-                goPrevBookmark(code, code->src + strlen(code->src));
-        }
-        else if (clear && keyWasPressed(code->studio, tic_key_period))
-        {
-            if(!goNextBookmark(code, getNextLineByPos(code, code->cursor.position)))
-                goNextBookmark(code, code->src);
-        }
 
         else if (clear && keyWasPressed(code->studio, tic_key_z))
             recenterScroll(code, true); //use emacs mode because it is nice
@@ -2931,30 +2831,7 @@ static void processKeyboard(Code* code)
 
     bool usedKeybinding = true;
 
-    // handle bookmarks
-    if(keyWasPressed(code->studio, tic_key_f1))
-    {
-        if(ctrl && shift)
-        {
-            for(CodeState* s = code->state, *end = s + TIC_CODE_SIZE; s != end; ++s)
-                s->bookmark = 0;
-        }
-        else if(ctrl)
-        {
-            toggleBookmark(code, getLineByPos(code, code->cursor.position));
-        }
-        else if(shift)
-        {
-            if(!goPrevBookmark(code, getPrevLineByPos(code, code->cursor.position)))
-                goPrevBookmark(code, code->src + strlen(code->src));
-        }
-        else
-        {
-            if(!goNextBookmark(code, getNextLineByPos(code, code->cursor.position)))
-                goNextBookmark(code, code->src);
-        }
-    }
-    else if(ctrl || alt)
+    if (ctrl || alt)
     {
         bool ctrlHandled = false;
         if(ctrl)
@@ -3511,11 +3388,33 @@ static void textBookmarkTick(Code* code)
 {
     processSidebar(code);
 
+    if(keyWasPressed(code->studio, tic_key_backspace))
+    {
+        if(*code->popup.text)
+        {
+            code->popup.text[strlen(code->popup.text)-1] = '\0';
+            setBookmarkMode(code);
+        }
+    }
+
+    char sym = getKeyboardText(code->studio);
+
+    if(sym)
+    {
+        if(strlen(code->popup.text) + 1 < sizeof code->popup.text)
+        {
+            char str[] = {sym, 0};
+            strcat(code->popup.text, str);
+            setBookmarkMode(code);
+        }
+    }
+
     tic_api_cls(code->tic, getConfig(code->studio)->theme.code.BG);
 
     drawCode(code, false);
     drawStatus(code);
-    drawSidebarBar(code, (TIC80_WIDTH - SIDEBAR_WIDTH) + code->anim.sidebar, TIC_FONT_HEIGHT+1);
+    drawSidebarBar(code, (TIC80_WIDTH - SIDEBAR_WIDTH) + code->anim.sidebar, 2*(TIC_FONT_HEIGHT+1));
+    drawPopupBar(code, "FILTER:");
 }
 
 static void textOutlineTick(Code* code)
@@ -3548,7 +3447,7 @@ static void textOutlineTick(Code* code)
     drawCode(code, false);
     drawStatus(code);
     drawSidebarBar(code, (TIC80_WIDTH - SIDEBAR_WIDTH) + code->anim.sidebar, 2*(TIC_FONT_HEIGHT+1));
-    drawPopupBar(code, "FUNC:");
+    drawPopupBar(code, "FILTER:");
 }
 
 static void drawFontButton(Code* code, s32 x, s32 y)
@@ -3687,13 +3586,13 @@ static void tick(Code* code)
 
     switch(code->mode)
     {
-    case TEXT_DRAG_CODE:    textDragTick(code);     break;
-    case TEXT_EDIT_MODE:    textEditTick(code);     break;
-    case TEXT_FIND_MODE:    textFindTick(code);     break;
-    case TEXT_REPLACE_MODE: textReplaceTick(code);   break;
-    case TEXT_GOTO_MODE:    textGoToTick(code);     break;
-    case TEXT_BOOKMARK_MODE:textBookmarkTick(code); break;
-    case TEXT_OUTLINE_MODE: textOutlineTick(code);  break;
+    case TEXT_DRAG_CODE:     textDragTick(code);     break;
+    case TEXT_EDIT_MODE:     textEditTick(code);     break;
+    case TEXT_FIND_MODE:     textFindTick(code);     break;
+    case TEXT_REPLACE_MODE:  textReplaceTick(code);   break;
+    case TEXT_GOTO_MODE:     textGoToTick(code);     break;
+    case TEXT_BOOKMARK_MODE: textBookmarkTick(code); break;
+    case TEXT_OUTLINE_MODE:  textOutlineTick(code);  break;
     }
 
     drawCodeToolbar(code);

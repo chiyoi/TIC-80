@@ -1774,7 +1774,7 @@ static const tic_outline_item* getLuaOutline(const char* code, s32* size)
 
     while(true)
     {
-        static const char FuncString[] = "function ";
+        static const char FuncString[] = "\nfunction ";
 
         ptr = strstr(ptr, FuncString);
 
@@ -1796,6 +1796,64 @@ static const tic_outline_item* getLuaOutline(const char* code, s32* size)
                     break;
                 }
                 else break;
+
+                ptr++;
+            }
+
+            if(end > start)
+            {
+                items = realloc(items, (*size + 1) * Size);
+
+                items[*size].pos = start;
+                items[*size].size = (s32)(end - start);
+
+                (*size)++;
+            }
+        }
+        else break;
+    }
+
+    return items;
+}
+
+static const tic_outline_item* getLuaBookmarks(const char* code, s32* size)
+{
+    enum{Size = sizeof(tic_outline_item)};
+
+    *size = 0;
+
+    static tic_outline_item* items = NULL;
+
+    if(items)
+    {
+        free(items);
+        items = NULL;
+    }
+
+    const char* ptr = code;
+
+    while(true)
+    {
+        static const char FuncString[] = "\n--* ";
+
+        ptr = strstr(ptr, FuncString);
+
+        if(ptr)
+        {
+            ptr += sizeof FuncString - 1;
+
+            const char* start = ptr;
+            const char* end = start;
+
+            while(*ptr)
+            {
+                char c = *ptr;
+
+                if(c == '\n')
+                {
+                    end = ptr;
+                    break;
+                }
 
                 ptr++;
             }
@@ -1916,6 +1974,7 @@ const tic_script EXPORT_SCRIPT(Lua) =
     },
 
     .getOutline         = getLuaOutline,
+    .getBookmarks       = getLuaBookmarks,
     .eval               = evalLua,
 
     .blockCommentStart  = "--[[",

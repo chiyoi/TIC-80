@@ -41,6 +41,7 @@ struct tic_script
     };
 
     const tic_outline_item* (*getOutline)(const char* code, s32* size);
+    const tic_outline_item* (*getBookmarks)(const char* code, s32* size);
     void (*eval)(tic_mem* tic, const char* code);
 
     const char* blockCommentStart;
